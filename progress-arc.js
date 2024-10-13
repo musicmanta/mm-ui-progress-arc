@@ -100,7 +100,7 @@ class ProgressArc extends HTMLElement {
 
   setupAnimation() {
     const percentage = parseFloat(this.getAttribute("percentage")) || 0;
-    const duration = parseFloat(this.getAttribute("duration")) || 1500;
+    const duration = parseFloat(this.getAttribute("duration"));
     const decimalPlaces = parseInt(this.getAttribute("decimal-places")) || 0;
 
     const progressCircle = this.shadowRoot.querySelector(".progress");
@@ -108,8 +108,16 @@ class ProgressArc extends HTMLElement {
     const circumference =
       parseFloat(progressCircle.getAttribute("r")) * 2 * Math.PI;
 
+    if (duration === 0) {
+      // Immediately set the final state without animation
+      progressCircle.style.strokeDashoffset =
+        circumference - (percentage / 100) * circumference;
+      valueElement.textContent = `${percentage.toFixed(decimalPlaces)}%`;
+      return;
+    }
+
     const startTime = performance.now();
-    const endTime = startTime + duration;
+    const endTime = startTime + (duration || 1500); // Use 1500ms as default if duration is not set
 
     const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -122,7 +130,7 @@ class ProgressArc extends HTMLElement {
       }
 
       const elapsedTime = currentTime - startTime;
-      const rawProgress = elapsedTime / duration;
+      const rawProgress = elapsedTime / (duration || 1500);
       const easedProgress = easeOutCubic(rawProgress);
       const progress = easedProgress * percentage;
 
