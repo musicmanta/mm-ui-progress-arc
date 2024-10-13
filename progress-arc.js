@@ -1,7 +1,6 @@
 class ProgressArc extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
     this._percentage = 0;
     this._size = 200; // Default size
     this._thickness = 20;
@@ -25,48 +24,48 @@ class ProgressArc extends HTMLElement {
       "thickness",
       "color",
       "bg-color",
-      "label-size",
-      "value-size",
       "start-angle",
       "direction",
-      "font-family",
-      "font-weight",
-      "progress-cap",
-      "background-opacity",
-      "duration",
-      "decimal-places",
-      "label-color",
-      "value-color",
+      "animation-duration",
     ];
   }
 
   connectedCallback() {
-    this.render();
-    this.updateArc(true);
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: "open" });
+      this.render();
+    }
+    this.updateAll();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      if (name === "bg-color") {
-        this._bgColor = this.validateColor(newValue) || this._bgColor;
-      } else if (name === "background-opacity") {
-        this._backgroundOpacity = parseFloat(newValue) || 1;
-      } else if (name === "size") {
-        // Handle negative size
-        this._size = Math.max(this.MIN_SIZE, parseInt(newValue) || this._size);
-      } else if (name === "decimal-places") {
-        this._decimalPlaces = Math.min(
-          this.MAX_DECIMAL_PLACES,
-          Math.max(0, parseInt(newValue) || 0)
-        );
-      } else {
-        this[`_${name.replace("-", "")}`] = newValue;
-      }
-
-      // Always re-render and update when any attribute changes
-      if (this.isConnected && this.shadowRoot) {
-        this.render();
-        this.updateArc(name === "percentage");
+      switch (name) {
+        case "percentage":
+          this.updatePercentage(newValue);
+          break;
+        case "label":
+          this.updateLabel(newValue);
+          break;
+        case "size":
+          this.updateSize(newValue);
+          break;
+        case "thickness":
+          this.updateThickness(newValue);
+          break;
+        case "color":
+        case "bg-color":
+          this.updateColors();
+          break;
+        case "start-angle":
+          this.updateStartAngle(newValue);
+          break;
+        case "direction":
+          this.updateDirection(newValue);
+          break;
+        case "animation-duration":
+          this.updateAnimationDuration(newValue);
+          break;
       }
     }
   }
@@ -157,6 +156,8 @@ class ProgressArc extends HTMLElement {
         <div class="value">0%</div>
       </div>
     `;
+
+    this.updateArc(false);
   }
 
   getLabelPositionStyle(position) {
@@ -293,6 +294,68 @@ class ProgressArc extends HTMLElement {
       x: centerX + radius * Math.cos(angleInRadians),
       y: centerY + radius * Math.sin(angleInRadians),
     };
+  }
+
+  updateAll() {
+    this.updatePercentage(this.getAttribute("percentage"));
+    this.updateLabel(this.getAttribute("label"));
+    this.updateSize(this.getAttribute("size"));
+    this.updateThickness(this.getAttribute("thickness"));
+    this.updateColors();
+    this.updateStartAngle(this.getAttribute("start-angle"));
+    this.updateDirection(this.getAttribute("direction"));
+    this.updateAnimationDuration(this.getAttribute("animation-duration"));
+  }
+
+  updatePercentage(value) {
+    const percentage = Math.min(100, Math.max(0, parseFloat(value) || 0));
+    this._percentage = percentage;
+    this.shadowRoot.querySelector(".value").textContent =
+      percentage.toFixed(2) + "%";
+    this.updateArc();
+  }
+
+  updateLabel(value) {
+    const label = this.shadowRoot.querySelector(".label");
+    if (label) {
+      label.textContent = value || "";
+      label.style.display = value ? "block" : "none";
+    }
+  }
+
+  updateSize(value) {
+    this._size = Math.max(this.MIN_SIZE, parseInt(value) || this._size);
+    this.render();
+  }
+
+  updateThickness(value) {
+    this._thickness = parseInt(value) || this._thickness;
+    this.render();
+  }
+
+  updateColors() {
+    this._color = this.validateColor(this.getAttribute("color")) || this._color;
+    this._bgColor =
+      this.validateColor(this.getAttribute("bg-color")) || this._bgColor;
+    this.render();
+  }
+
+  updateStartAngle(value) {
+    const startAngle = parseInt(value) || -90;
+    this.shadowRoot.querySelector(
+      ".svg-container"
+    ).style.transform = `rotate(${startAngle}deg)`;
+  }
+
+  updateDirection(value) {
+    this._direction =
+      value === "counterclockwise" ? "counterclockwise" : "clockwise";
+    this.updateArc();
+  }
+
+  updateAnimationDuration(value) {
+    this._duration = parseInt(value) || this._duration;
+    this.render();
   }
 }
 
