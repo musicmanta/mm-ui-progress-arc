@@ -3,17 +3,18 @@ class ProgressArc extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this._percentage = 0;
-    this._size = 200;
+    this._size = 200; // Default size
     this._thickness = 20;
     this._color = "#7c3aed";
     this._bgColor = "#e0e0e0";
+    this._backgroundOpacity = 1;
     this._labelColor = "#000000";
     this._valueColor = "#000000";
     this._decimalPlaces = 0;
     this._duration = 1500;
     this._currentPercentage = 0;
-    this.MIN_SIZE = 100; // Define minimum size constant
-    this.MAX_DECIMAL_PLACES = 4; // Define maximum decimal places
+    this.MIN_SIZE = 100; // Minimum size
+    this.MAX_DECIMAL_PLACES = 2; // Changed from 4 to 2
   }
 
   static get observedAttributes() {
@@ -46,116 +47,60 @@ class ProgressArc extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      if (name === "size") {
-        // Clamp size to minimum value
-        const parsedSize = parseInt(newValue);
-        if (parsedSize < this.MIN_SIZE) {
-          console.warn(
-            `ProgressArc: Size ${parsedSize} is below minimum. Using ${this.MIN_SIZE} instead.`
-          );
-        }
-        this._size = Math.max(this.MIN_SIZE, parsedSize || this.MIN_SIZE);
-      } else if (name === "thickness") {
-        // Clamp thickness to maximum of half the diameter
-        const maxThickness = this._size / 2;
-        const parsedThickness = parseInt(newValue);
-        if (parsedThickness > maxThickness) {
-          console.warn(
-            `ProgressArc: Thickness ${parsedThickness} exceeds maximum. Using ${maxThickness} instead.`
-          );
-        }
-        this._thickness = Math.min(
-          maxThickness,
-          Math.max(1, parsedThickness || 20)
-        );
-      } else if (
-        ["color", "bg-color", "label-color", "value-color"].includes(name)
-      ) {
-        // Validate color inputs
-        const validatedColor = this.validateColor(newValue);
-        if (!validatedColor) {
-          console.warn(
-            `ProgressArc: Invalid color value for ${name}. Using default color.`
-          );
-        }
-        this[`_${name.replace("-", "")}`] =
-          validatedColor || this[`_${name.replace("-", "")}`];
+      if (name === "bg-color") {
+        this._bgColor = this.validateColor(newValue) || this._bgColor;
+      } else if (name === "background-opacity") {
+        this._backgroundOpacity = parseFloat(newValue) || 1;
+      } else if (name === "size") {
+        // Handle negative size
+        this._size = Math.max(this.MIN_SIZE, parseInt(newValue) || this._size);
       } else if (name === "decimal-places") {
-        // Clamp decimal places between 0 and MAX_DECIMAL_PLACES
-        const parsedDecimalPlaces = parseInt(newValue);
-        if (parsedDecimalPlaces > this.MAX_DECIMAL_PLACES) {
-          console.warn(
-            `ProgressArc: Decimal places ${parsedDecimalPlaces} exceeds maximum. Using ${this.MAX_DECIMAL_PLACES} instead.`
-          );
-        }
         this._decimalPlaces = Math.min(
           this.MAX_DECIMAL_PLACES,
-          Math.max(0, parsedDecimalPlaces || 0)
+          Math.max(0, parseInt(newValue) || 0)
         );
-      } else if (name === "percentage") {
-        const parsedPercentage = parseFloat(newValue);
-        if (parsedPercentage < 0 || parsedPercentage > 100) {
-          console.warn(
-            `ProgressArc: Percentage ${parsedPercentage} is out of range. Clamping to 0-100.`
-          );
-        }
-        this._percentage = Math.min(100, Math.max(0, parsedPercentage || 0));
-      } else if (name === "direction") {
-        if (newValue !== "clockwise" && newValue !== "counterclockwise") {
-          console.warn(
-            `ProgressArc: Invalid direction "${newValue}". Defaulting to clockwise.`
-          );
-          this._direction = "clockwise";
-        } else {
-          this._direction = newValue;
-        }
       } else {
         this[`_${name.replace("-", "")}`] = newValue;
       }
+
+      // Always re-render and update when any attribute changes
       if (this.isConnected && this.shadowRoot) {
+        this.render();
         this.updateArc(name === "percentage");
       }
     }
   }
 
   validateColor(color) {
-    // Simple color validation regex
     const colorRegex = /^#([0-9A-F]{3}){1,2}$/i;
     if (colorRegex.test(color)) {
       return color;
     }
-    // You could add more complex color validation here (e.g., named colors, rgb(), etc.)
     return null;
   }
 
   render() {
+    // Ensure size is at least the minimum size
+    const size = Math.max(this.MIN_SIZE, this._size);
     const startAngle = this.getAttribute("start-angle") || "-90";
     const label = this.getAttribute("label") || "";
-    const backgroundOpacity = this.getAttribute("background-opacity") || 1;
+    const backgroundOpacity =
+      this.getAttribute("background-opacity") || this._backgroundOpacity;
     this._labelColor = this.getAttribute("label-color") || "#000000";
     this._valueColor = this.getAttribute("value-color") || "#000000";
+    const labelPosition = this.getAttribute("label-position") || "inside";
+    const valuePosition = this.getAttribute("value-position") || "inside";
 
-    // Ensure thickness is not greater than half the diameter
-    const maxThickness = this._size / 2;
-    this._thickness = Math.min(maxThickness, this._thickness);
-
-    const radius = (this._size - this._thickness) / 2;
+    const radius = (size - this._thickness) / 2;
 
     this.shadowRoot.innerHTML = `
       <style>
         .progress-container {
           position: relative;
-          width: ${this._size}px;
-          height: ${this._size}px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
+          width: ${size}px;
+          height: ${size}px;
         }
-        svg {
-          position: absolute;
-          top: 0;
-          left: 0;
+        .svg-container {
           transform: rotate(${startAngle}deg);
         }
         .background {
@@ -170,36 +115,39 @@ class ProgressArc extends HTMLElement {
           transition: stroke-dashoffset ${this._duration}ms ease-out;
         }
         .label, .value {
-          position: relative;
+          position: absolute;
           text-align: center;
           line-height: 1.2;
           font-family: ${
             this.getAttribute("font-family") || "Arial, sans-serif"
           };
           font-weight: ${this.getAttribute("font-weight") || "bold"};
+          transform: translate(-50%, -50%);
+          left: 50%;
         }
         .label {
           font-size: ${this.getAttribute("label-size") || "14"}px;
-          margin-bottom: 5px;
           color: ${this._labelColor};
-          ${label ? "" : "display: none;"}
+          display: ${label ? "block" : "none"};
+          ${this.getLabelPositionStyle(labelPosition)}
         }
         .value {
           font-size: ${this.getAttribute("value-size") || "36"}px;
           color: ${this._valueColor};
+          ${this.getValuePositionStyle(valuePosition, !label)}
         }
       </style>
       <div class="progress-container">
-        <svg width="${this._size}" height="${this._size}">
+        <svg class="svg-container" width="${size}" height="${size}">
           <circle class="background"
-            cx="${this._size / 2}"
-            cy="${this._size / 2}"
+            cx="${size / 2}"
+            cy="${size / 2}"
             r="${radius}"
             stroke-width="${this._thickness}"
           />
           <circle class="progress"
-            cx="${this._size / 2}"
-            cy="${this._size / 2}"
+            cx="${size / 2}"
+            cy="${size / 2}"
             r="${radius}"
             stroke-width="${this._thickness}"
             stroke-dasharray="0 100"
@@ -209,6 +157,39 @@ class ProgressArc extends HTMLElement {
         <div class="value">0%</div>
       </div>
     `;
+  }
+
+  getLabelPositionStyle(position) {
+    switch (position) {
+      case "top":
+        return "top: 10%;";
+      case "bottom":
+        return "bottom: 10%;";
+      case "left":
+        return "top: 50%; left: 10%;";
+      case "right":
+        return "top: 50%; right: 10%; transform: translate(50%, -50%);";
+      default: // inside
+        return "top: 40%;";
+    }
+  }
+
+  getValuePositionStyle(position, noLabel) {
+    if (noLabel) {
+      return "top: 50%;"; // Center the value when there's no label
+    }
+    switch (position) {
+      case "top":
+        return "top: 30%;";
+      case "bottom":
+        return "bottom: 30%;";
+      case "left":
+        return "top: 50%; left: 30%;";
+      case "right":
+        return "top: 50%; right: 30%; transform: translate(50%, -50%);";
+      default: // inside
+        return "top: 60%;";
+    }
   }
 
   updateArc(animate = false) {
@@ -226,6 +207,25 @@ class ProgressArc extends HTMLElement {
       Math.max(0, parseFloat(this._percentage) || 0)
     );
     const dashOffset = circumference - (percentage / 100) * circumference;
+
+    // Ensure the direction is being applied
+    const startAngle = this._direction === "counterclockwise" ? 0 : Math.PI * 2;
+    const endAngle =
+      this._direction === "counterclockwise"
+        ? (1 - percentage / 100) * Math.PI * 2
+        : (percentage / 100) * Math.PI * 2;
+
+    // Apply the calculated angles to the SVG arc
+    progress.setAttribute(
+      "d",
+      this.describeArc(
+        this._size / 2,
+        this._size / 2,
+        radius,
+        startAngle,
+        endAngle
+      )
+    );
 
     if (parseInt(this._duration) === 0 || !animate) {
       progress.style.transition = "none";
@@ -278,6 +278,21 @@ class ProgressArc extends HTMLElement {
 
   formatPercentage(value) {
     return `${value.toFixed(this._decimalPlaces)}%`;
+  }
+
+  // Helper function to create SVG arc path
+  describeArc(x, y, radius, startAngle, endAngle) {
+    const start = this.polarToCartesian(x, y, radius, endAngle);
+    const end = this.polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
+    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+  }
+
+  polarToCartesian(centerX, centerY, radius, angleInRadians) {
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    };
   }
 }
 
