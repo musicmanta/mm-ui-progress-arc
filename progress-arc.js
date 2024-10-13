@@ -2,40 +2,108 @@ class ProgressArc extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    this._percentage = 0;
+    this._size = 200;
+    this._thickness = 20;
+    this._color = "#7c3aed";
+    this._bgColor = "#e0e0e0";
+    this._decimalPlaces = 0;
+    this._duration = 1500;
+    this._currentPercentage = 0;
+  }
+
+  static get observedAttributes() {
+    return [
+      "percentage",
+      "label",
+      "size",
+      "thickness",
+      "color",
+      "bg-color",
+      "label-size",
+      "value-size",
+      "start-angle",
+      "direction",
+      "font-family",
+      "font-weight",
+      "progress-cap",
+      "background-opacity",
+      "label-color",
+      "value-color",
+      "duration",
+      "decimal-places",
+    ];
   }
 
   connectedCallback() {
+    this.updateArc();
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue !== newValue) {
+      this[`_${name.replace("-", "")}`] = newValue;
+      this.updateArc();
+    }
+  }
+
+  updateArc() {
+    // Handle percentage out of range
+    this._percentage = Math.max(
+      0,
+      Math.min(100, parseFloat(this._percentage) || 0)
+    );
+
+    // Handle invalid size
+    this._size = Math.max(50, parseFloat(this._size) || 200);
+
+    // Handle invalid thickness
+    const maxThickness = this._size / 4;
+    this._thickness = Math.min(
+      maxThickness,
+      Math.max(1, parseFloat(this._thickness) || 20)
+    );
+
+    // Handle invalid colors
+    this._color = this.isValidColor(this._color) ? this._color : "#7c3aed";
+    this._bgColor = this.isValidColor(this._bgColor)
+      ? this._bgColor
+      : "#e0e0e0";
+
+    // Handle invalid direction
+    this._direction =
+      this._direction === "counterclockwise" ? "counterclockwise" : "clockwise";
+
+    // Handle excessive decimal places
+    this._decimalPlaces = Math.min(
+      2,
+      Math.max(0, parseInt(this._decimalPlaces) || 0)
+    );
+
+    // Handle invalid duration
+    this._duration = Math.max(0, parseFloat(this._duration) || 1500);
+
     this.render();
+    this.animate();
+  }
+
+  isValidColor(color) {
+    const s = new Option().style;
+    s.color = color;
+    return s.color !== "";
   }
 
   render() {
-    const percentage = this.getAttribute("percentage") || "0";
-    const label = this.getAttribute("label") || "";
-    const size = this.getAttribute("size") || "200";
-    const thickness = this.getAttribute("thickness") || "20";
-    const color = this.getAttribute("color") || "#7c3aed";
-    const bgColor = this.getAttribute("bg-color") || "#e0e0e0";
-    const labelSize = this.getAttribute("label-size") || "14";
-    const valueSize = this.getAttribute("value-size") || "36";
-    const startAngle = this.getAttribute("start-angle") || "-90";
-    const direction = this.getAttribute("direction") || "clockwise";
-    const fontFamily = this.getAttribute("font-family") || "Arial, sans-serif";
-    const fontWeight = this.getAttribute("font-weight") || "bold";
-    const progressCap = this.getAttribute("progress-cap") || "round";
-    const backgroundOpacity = this.getAttribute("background-opacity") || "0.2";
-    const labelColor = this.getAttribute("label-color") || "#666";
-    const valueColor = this.getAttribute("value-color") || "#333";
-
-    const radius = (size - thickness) / 2;
+    const radius = (this._size - this._thickness) / 2;
     const circumference = radius * 2 * Math.PI;
-    const dashOffset = direction === "clockwise" ? 0 : circumference;
+    const startAngle = this.getAttribute("start-angle") || "-90";
+    const label = this.getAttribute("label") || "";
 
     this.shadowRoot.innerHTML = `
       <style>
         .progress-container {
           position: relative;
-          width: ${size}px;
-          height: ${size}px;
+          width: ${this._size}px;
+          height: ${this._size}px;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -49,99 +117,84 @@ class ProgressArc extends HTMLElement {
         }
         .background {
           fill: none;
-          stroke: ${bgColor};
-          stroke-width: ${thickness};
-          opacity: ${backgroundOpacity};
+          stroke: ${this._bgColor};
         }
         .progress {
           fill: none;
-          stroke: ${color};
-          stroke-width: ${thickness};
-          stroke-dasharray: ${circumference};
-          stroke-dashoffset: ${circumference};
-          stroke-linecap: ${progressCap};
+          stroke: ${this._color};
+          stroke-linecap: round;
           transition: stroke-dashoffset 0.5s ease-out;
         }
         .label, .value {
           position: relative;
           text-align: center;
-          width: 100%;
           line-height: 1.2;
-          font-family: ${fontFamily};
-          font-weight: ${fontWeight};
         }
         .label {
-          font-size: ${labelSize}px;
-          color: ${labelColor};
+          font-size: ${this._labelsize || "14"}px;
           margin-bottom: 5px;
-          display: ${label ? "block" : "none"}; /* Hide if label is empty */
+          ${label ? "" : "display: none;"}
         }
         .value {
-          font-size: ${valueSize}px;
-          color: ${valueColor};
+          font-size: ${this._valuesize || "36"}px;
+          font-weight: bold;
         }
       </style>
       <div class="progress-container">
-        <svg width="${size}" height="${size}">
-          <circle class="background" cx="${size / 2}" cy="${
-      size / 2
-    }" r="${radius}"/>
-          <circle class="progress" cx="${size / 2}" cy="${
-      size / 2
-    }" r="${radius}"/>
+        <svg width="${this._size}" height="${this._size}">
+          <circle class="background"
+            cx="${this._size / 2}"
+            cy="${this._size / 2}"
+            r="${radius}"
+            stroke-width="${this._thickness}"
+          />
+          <circle class="progress"
+            cx="${this._size / 2}"
+            cy="${this._size / 2}"
+            r="${radius}"
+            stroke-width="${this._thickness}"
+            stroke-dasharray="${circumference}"
+            stroke-dashoffset="${circumference}"
+          />
         </svg>
         ${label ? `<div class="label">${label}</div>` : ""}
         <div class="value">0%</div>
       </div>
     `;
-
-    this.setupAnimation();
   }
 
-  setupAnimation() {
-    const percentage = parseFloat(this.getAttribute("percentage")) || 0;
-    const duration = parseFloat(this.getAttribute("duration"));
-    const decimalPlaces = parseInt(this.getAttribute("decimal-places")) || 0;
-
-    const progressCircle = this.shadowRoot.querySelector(".progress");
-    const valueElement = this.shadowRoot.querySelector(".value");
-    const circumference =
-      parseFloat(progressCircle.getAttribute("r")) * 2 * Math.PI;
-
-    if (duration === 0) {
-      // Immediately set the final state without animation
-      progressCircle.style.strokeDashoffset =
-        circumference - (percentage / 100) * circumference;
-      valueElement.textContent = `${percentage.toFixed(decimalPlaces)}%`;
-      return;
-    }
+  animate() {
+    const progress = this.shadowRoot.querySelector(".progress");
+    const valueDisplay = this.shadowRoot.querySelector(".value");
+    const radius = (this._size - this._thickness) / 2;
+    const circumference = radius * 2 * Math.PI;
 
     const startTime = performance.now();
-    const endTime = startTime + (duration || 1500); // Use 1500ms as default if duration is not set
-
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
     const animate = (currentTime) => {
-      if (currentTime >= endTime) {
-        progressCircle.style.strokeDashoffset =
-          circumference - (percentage / 100) * circumference;
-        valueElement.textContent = `${percentage.toFixed(decimalPlaces)}%`;
-        return;
-      }
-
       const elapsedTime = currentTime - startTime;
-      const rawProgress = elapsedTime / (duration || 1500);
-      const easedProgress = easeOutCubic(rawProgress);
-      const progress = easedProgress * percentage;
+      const progress = Math.min(elapsedTime / this._duration, 1);
+      const easedProgress = this.easeOutCubic(progress);
 
-      const dashOffset = circumference - (progress / 100) * circumference;
-      progressCircle.style.strokeDashoffset = dashOffset;
-      valueElement.textContent = `${progress.toFixed(decimalPlaces)}%`;
+      const currentPercentage = easedProgress * this._percentage;
+      const dashOffset =
+        circumference - (currentPercentage / 100) * circumference;
 
-      requestAnimationFrame(animate);
+      this.shadowRoot.querySelector(".progress").style.strokeDashoffset =
+        dashOffset;
+      valueDisplay.textContent = `${currentPercentage.toFixed(
+        this._decimalPlaces
+      )}%`;
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
     };
 
     requestAnimationFrame(animate);
+  }
+
+  easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
   }
 }
 

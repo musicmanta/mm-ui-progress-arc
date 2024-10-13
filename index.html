@@ -381,6 +381,141 @@
           Inverted colors on dark background
         </p>
       </div>
+
+      <h2>Edge Cases and Error Handling Examples</h2>
+      <div class="container">
+        <!-- Percentage out of range -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="150"
+              label="Over 100%"
+              size="180"
+              thickness="15"
+              color="#FF5722"
+              bg-color="#FFCDD2"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Percentage over 100% (should clamp to 100%)</p>
+        </div>
+
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="-20"
+              label="Negative %"
+              size="180"
+              thickness="15"
+              color="#2196F3"
+              bg-color="#BBDEFB"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Negative percentage (should clamp to 0%)</p>
+        </div>
+
+        <!-- Invalid size and thickness -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="50"
+              label="Invalid Size"
+              size="-100"
+              thickness="15"
+              color="#4CAF50"
+              bg-color="#C8E6C9"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Negative size (should use default size)</p>
+        </div>
+
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="50"
+              label="Large Thickness"
+              size="180"
+              thickness="100"
+              color="#9C27B0"
+              bg-color="#E1BEE7"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Thickness > radius (should adjust thickness)</p>
+        </div>
+
+        <!-- Invalid colors -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="75"
+              label="Invalid Colors"
+              size="180"
+              thickness="15"
+              color="not-a-color"
+              bg-color="#INVALID"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">
+            Invalid color values (should use default colors)
+          </p>
+        </div>
+
+        <!-- Non-numeric inputs -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="half"
+              label="Non-numeric"
+              size="large"
+              thickness="thin"
+              color="#FFC107"
+              bg-color="#FFF8E1"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Non-numeric inputs (should use default values)</p>
+        </div>
+
+        <!-- Excessive decimal places -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="33.33333"
+              label="Many Decimals"
+              size="180"
+              thickness="15"
+              color="#795548"
+              bg-color="#D7CCC8"
+              decimal-places="10"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">
+            Excessive decimal places (should limit decimals)
+          </p>
+        </div>
+
+        <!-- Invalid direction -->
+        <div class="chart-container">
+          <div class="progress-arc-wrapper">
+            <progress-arc
+              percentage="60"
+              label="Wrong Direction"
+              size="180"
+              thickness="15"
+              color="#607D8B"
+              bg-color="#CFD8DC"
+              direction="sideways"
+            >
+            </progress-arc>
+          </div>
+          <p class="comment">Invalid direction (should default to clockwise)</p>
+        </div>
+      </div>
     </div>
   </body>
 </html>

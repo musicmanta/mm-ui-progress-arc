@@ -81,6 +81,114 @@ The Progress Arc component accepts the following attributes:
 </progress-arc>
 ```
 
+## Edge Cases and Error Handling
+
+The Progress Arc component is designed to handle various edge cases gracefully. Here are some examples of how it manages potentially problematic inputs:
+
+### Percentage Out of Range
+
+```html
+<progress-arc percentage="150" label="Over 100%"></progress-arc>
+<progress-arc percentage="-20" label="Negative percentage"></progress-arc>
+```
+
+In these cases, the component will clamp the percentage to the valid range (0-100). A console warning will be logged:
+
+```
+console.warn('Progress Arc: Percentage value out of range. Clamping to 0-100.');
+```
+
+### Invalid Size or Thickness
+
+```html
+<progress-arc
+  percentage="50"
+  size="-100"
+  thickness="5"
+  label="Negative size"
+></progress-arc>
+<progress-arc
+  percentage="50"
+  size="100"
+  thickness="60"
+  label="Thickness > radius"
+></progress-arc>
+```
+
+The component will use default values for invalid sizes or thicknesses. Console warnings will be logged:
+
+```
+console.warn('Progress Arc: Invalid size. Using default value.');
+console.warn('Progress Arc: Thickness cannot be greater than radius. Adjusting to fit.');
+```
+
+### Invalid Color Values
+
+```html
+<progress-arc
+  percentage="60"
+  color="not-a-color"
+  bg-color="#FF00"
+  label="Invalid colors"
+></progress-arc>
+```
+
+The component will fall back to default colors for invalid color strings. A console warning will be logged:
+
+```
+console.warn('Progress Arc: Invalid color value. Using default color.');
+```
+
+### Non-Numeric Inputs for Numeric Attributes
+
+```html
+<progress-arc
+  percentage="half"
+  size="large"
+  label="Non-numeric inputs"
+></progress-arc>
+```
+
+The component will attempt to parse numeric values and fall back to defaults if parsing fails. Console warnings will be logged:
+
+```
+console.warn('Progress Arc: Invalid numeric input. Using default value.');
+```
+
+### Excessive Decimal Places
+
+```html
+<progress-arc
+  percentage="33.33333"
+  decimal-places="10"
+  label="Too many decimals"
+></progress-arc>
+```
+
+The component will limit the maximum number of decimal places to prevent visual clutter. A console info message will be logged:
+
+```
+console.info('Progress Arc: Decimal places limited to improve readability.');
+```
+
+### Invalid Direction
+
+```html
+<progress-arc
+  percentage="75"
+  direction="sideways"
+  label="Invalid direction"
+></progress-arc>
+```
+
+The component will default to 'clockwise' for any invalid direction input. A console warning will be logged:
+
+```
+console.warn('Progress Arc: Invalid direction. Defaulting to clockwise.');
+```
+
+These edge cases are handled gracefully by the component to prevent errors and maintain a consistent appearance. Developers can monitor the console for warnings and adjust their usage accordingly.
+
 ## Browser Support
 
 This component uses modern web technologies and should work in all evergreen browsers that support Custom Elements v1 and ES6 modules.
