@@ -1,7 +1,7 @@
 class ProgressArc extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
   }
 
   connectedCallback() {
@@ -9,24 +9,24 @@ class ProgressArc extends HTMLElement {
   }
 
   render() {
-    const percentage = this.getAttribute('percentage') || '0';
-    const label = this.getAttribute('label') || '';
-    const size = this.getAttribute('size') || '200';
-    const thickness = this.getAttribute('thickness') || '20';
-    const color = this.getAttribute('color') || '#7c3aed';
-    const bgColor = this.getAttribute('bg-color') || '#e0e0e0';
-    const labelSize = this.getAttribute('label-size') || '14';
-    const valueSize = this.getAttribute('value-size') || '36';
-    const startAngle = this.getAttribute('start-angle') || '-90';
-    const direction = this.getAttribute('direction') || 'clockwise';
-    const fontFamily = this.getAttribute('font-family') || 'Arial, sans-serif';
-    const fontWeight = this.getAttribute('font-weight') || 'bold';
-    const progressCap = this.getAttribute('progress-cap') || 'round';
-    const backgroundOpacity = this.getAttribute('background-opacity') || '0.2';
+    const percentage = this.getAttribute("percentage") || "0";
+    const label = this.getAttribute("label") || "";
+    const size = this.getAttribute("size") || "200";
+    const thickness = this.getAttribute("thickness") || "20";
+    const color = this.getAttribute("color") || "#7c3aed";
+    const bgColor = this.getAttribute("bg-color") || "#e0e0e0";
+    const labelSize = this.getAttribute("label-size") || "14";
+    const valueSize = this.getAttribute("value-size") || "36";
+    const startAngle = this.getAttribute("start-angle") || "-90";
+    const direction = this.getAttribute("direction") || "clockwise";
+    const fontFamily = this.getAttribute("font-family") || "Arial, sans-serif";
+    const fontWeight = this.getAttribute("font-weight") || "bold";
+    const progressCap = this.getAttribute("progress-cap") || "round";
+    const backgroundOpacity = this.getAttribute("background-opacity") || "0.2";
 
     const radius = (size - thickness) / 2;
     const circumference = radius * 2 * Math.PI;
-    const dashOffset = direction === 'clockwise' ? 0 : circumference;
+    const dashOffset = direction === "clockwise" ? 0 : circumference;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -75,8 +75,12 @@ class ProgressArc extends HTMLElement {
       </style>
       <div class="progress-container">
         <svg width="${size}" height="${size}">
-          <circle class="background" cx="${size/2}" cy="${size/2}" r="${radius}"/>
-          <circle class="progress" cx="${size/2}" cy="${size/2}" r="${radius}"/>
+          <circle class="background" cx="${size / 2}" cy="${
+      size / 2
+    }" r="${radius}"/>
+          <circle class="progress" cx="${size / 2}" cy="${
+      size / 2
+    }" r="${radius}"/>
         </svg>
         <div class="label">${label}</div>
         <div class="value">0%</div>
@@ -87,13 +91,14 @@ class ProgressArc extends HTMLElement {
   }
 
   setupAnimation() {
-    const percentage = parseFloat(this.getAttribute('percentage')) || 0;
-    const duration = parseFloat(this.getAttribute('duration')) || 1500;
-    const decimalPlaces = parseInt(this.getAttribute('decimal-places')) || 0;
+    const percentage = parseFloat(this.getAttribute("percentage")) || 0;
+    const duration = parseFloat(this.getAttribute("duration")) || 1500;
+    const decimalPlaces = parseInt(this.getAttribute("decimal-places")) || 0;
 
-    const progressCircle = this.shadowRoot.querySelector('.progress');
-    const valueElement = this.shadowRoot.querySelector('.value');
-    const circumference = parseFloat(progressCircle.getAttribute('r')) * 2 * Math.PI;
+    const progressCircle = this.shadowRoot.querySelector(".progress");
+    const valueElement = this.shadowRoot.querySelector(".value");
+    const circumference =
+      parseFloat(progressCircle.getAttribute("r")) * 2 * Math.PI;
 
     const startTime = performance.now();
     const endTime = startTime + duration;
@@ -102,7 +107,8 @@ class ProgressArc extends HTMLElement {
 
     const animate = (currentTime) => {
       if (currentTime >= endTime) {
-        progressCircle.style.strokeDashoffset = circumference - (percentage / 100) * circumference;
+        progressCircle.style.strokeDashoffset =
+          circumference - (percentage / 100) * circumference;
         valueElement.textContent = `${percentage.toFixed(decimalPlaces)}%`;
         return;
       }
@@ -123,4 +129,4 @@ class ProgressArc extends HTMLElement {
   }
 }
 
-customElements.define('progress-arc', ProgressArc);
+customElements.define("progress-arc", ProgressArc);

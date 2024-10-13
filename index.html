@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Custom Progress Arc</title>
+    <title>Custom Progress Arc Examples</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="progress-arc.js"></script>
   </head>
   <body>
-    <h1>Custom Progress Arc</h1>
+    <h1>Custom Progress Arc Examples</h1>
     <div class="container">
+      <!-- Original example -->
       <div class="chart-container">
-        <progress-arc 
-          percentage="60" 
-          label="Active users this is a test" 
-          size="200" 
-          thickness="20" 
-          color="#7c3aed" 
-          bg-color="#e0e0e0" 
-          label-size="16" 
-          value-size="32" 
-          duration="2000" 
+        <progress-arc
+          percentage="60"
+          label="Active users"
+          size="200"
+          thickness="20"
+          color="#7c3aed"
+          bg-color="#e0e0e0"
+          label-size="16"
+          value-size="32"
+          duration="2000"
           decimal-places="0"
           start-angle="-90"
           direction="clockwise"
@@ -29,7 +30,152 @@
           font-family="Arial, sans-serif"
           font-weight="bold"
           progress-cap="round"
-          background-opacity="0.2">
+          background-opacity="0.2"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Smaller arc with different colors -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="75"
+          label="Task completion"
+          size="150"
+          thickness="15"
+          color="#22c55e"
+          bg-color="#f0fdf4"
+          label-size="14"
+          value-size="28"
+          duration="1500"
+          decimal-places="1"
+          start-angle="0"
+          direction="counterclockwise"
+          label-position="outside"
+          value-position="inside"
+          font-family="Helvetica, sans-serif"
+          font-weight="normal"
+          progress-cap="butt"
+          background-opacity="0.5"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Larger arc with gradient color -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="90"
+          label="Storage used"
+          size="250"
+          thickness="25"
+          color="linear-gradient(to right, #3b82f6, #8b5cf6)"
+          bg-color="#f1f5f9"
+          label-size="18"
+          value-size="36"
+          duration="2500"
+          decimal-places="0"
+          start-angle="180"
+          direction="clockwise"
+          label-position="inside"
+          value-position="outside"
+          font-family="'Roboto', sans-serif"
+          font-weight="500"
+          progress-cap="round"
+          background-opacity="0.3"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Half circle arc -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="40"
+          label="Progress"
+          size="180"
+          thickness="18"
+          color="#f59e0b"
+          bg-color="#fef3c7"
+          label-size="16"
+          value-size="30"
+          duration="1800"
+          decimal-places="0"
+          start-angle="-180"
+          direction="clockwise"
+          label-position="outside"
+          value-position="inside"
+          font-family="'Open Sans', sans-serif"
+          font-weight="600"
+          progress-cap="round"
+          background-opacity="0.4"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Green download progress example -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="75"
+          label="Download Progress"
+          size="250"
+          thickness="30"
+          color="#4CAF50"
+          bg-color="#E0E0E0"
+          label-size="18"
+          value-size="40"
+          duration="2500"
+          decimal-places="1"
+          start-angle="0"
+          direction="clockwise"
+          font-family="Roboto, sans-serif"
+          font-weight="normal"
+          progress-cap="round"
+          background-opacity="0.1"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Red counterclockwise example -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="33"
+          label="CPU Usage"
+          size="180"
+          thickness="15"
+          color="#FF5722"
+          bg-color="#FFCDD2"
+          label-size="14"
+          value-size="28"
+          duration="1800"
+          decimal-places="0"
+          start-angle="90"
+          direction="counterclockwise"
+          font-family="Helvetica, sans-serif"
+          font-weight="bold"
+          progress-cap="butt"
+          background-opacity="0.3"
+        >
+        </progress-arc>
+      </div>
+
+      <!-- Blue thin line example -->
+      <div class="chart-container">
+        <progress-arc
+          percentage="90"
+          label="Project Completion"
+          size="220"
+          thickness="8"
+          color="#2196F3"
+          bg-color="#BBDEFB"
+          label-size="16"
+          value-size="36"
+          duration="3000"
+          decimal-places="0"
+          start-angle="-180"
+          direction="clockwise"
+          font-family="Arial, sans-serif"
+          font-weight="normal"
+          progress-cap="round"
+          background-opacity="0.2"
+        >
         </progress-arc>
       </div>
     </div>
