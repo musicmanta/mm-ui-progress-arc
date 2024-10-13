@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Custom Progress Arc</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="progress-arc.js"></script>
+  </head>
+  <body>
+    <h1>Custom Progress Arc</h1>
+    <div class="container">
+      <div class="chart-container">
+        <progress-arc 
+          percentage="40" 
+          label="Active users" 
+          size="200" 
+          thickness="20" 
+          color="#7c3aed" 
+          bg-color="#e0e0e0" 
+          label-size="16" 
+          value-size="32" 
+          duration="2000" 
+          decimal-places="0"
+          start-angle="-90"
+          direction="clockwise"
+          label-position="inside"
+          value-position="inside"
+          font-family="Arial, sans-serif"
+          font-weight="bold"
+          progress-cap="round"
+          background-opacity="0.2">
+        </progress-arc>
+      </div>
+    </div>
+  </body>
+</html>
