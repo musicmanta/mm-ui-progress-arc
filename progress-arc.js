@@ -23,6 +23,8 @@ class ProgressArc extends HTMLElement {
     const fontWeight = this.getAttribute("font-weight") || "bold";
     const progressCap = this.getAttribute("progress-cap") || "round";
     const backgroundOpacity = this.getAttribute("background-opacity") || "0.2";
+    const labelColor = this.getAttribute("label-color") || "#666";
+    const valueColor = this.getAttribute("value-color") || "#333";
 
     const radius = (size - thickness) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -34,8 +36,15 @@ class ProgressArc extends HTMLElement {
           position: relative;
           width: ${size}px;
           height: ${size}px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
         }
         svg {
+          position: absolute;
+          top: 0;
+          left: 0;
           transform: rotate(${startAngle}deg);
         }
         .background {
@@ -54,23 +63,22 @@ class ProgressArc extends HTMLElement {
           transition: stroke-dashoffset 0.5s ease-out;
         }
         .label, .value {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
+          position: relative;
+          text-align: center;
+          width: 100%;
+          line-height: 1.2;
           font-family: ${fontFamily};
           font-weight: ${fontWeight};
-          text-align: center;
         }
         .label {
           font-size: ${labelSize}px;
-          top: 35%;
-          color: #666;
+          color: ${labelColor};
+          margin-bottom: 5px;
+          display: ${label ? "block" : "none"}; /* Hide if label is empty */
         }
         .value {
           font-size: ${valueSize}px;
-          top: 55%;
-          transform: translate(-50%, -50%);
-          color: #333;
+          color: ${valueColor};
         }
       </style>
       <div class="progress-container">
@@ -82,7 +90,7 @@ class ProgressArc extends HTMLElement {
       size / 2
     }" r="${radius}"/>
         </svg>
-        <div class="label">${label}</div>
+        ${label ? `<div class="label">${label}</div>` : ""}
         <div class="value">0%</div>
       </div>
     `;
