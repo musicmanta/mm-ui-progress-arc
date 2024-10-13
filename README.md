@@ -10,6 +10,7 @@ A customizable, animated circular progress indicator built as a web component.
 - Adjustable animation duration
 - Responsive design
 - Robust error handling and edge case management
+- Decimal places limited to a maximum of 2 for readability
 
 ## Installation
 
