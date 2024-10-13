@@ -12,6 +12,8 @@ class ProgressArc extends HTMLElement {
     this._decimalPlaces = 0;
     this._duration = 1500;
     this._currentPercentage = 0;
+    this.MIN_SIZE = 100; // Define minimum size constant
+    this.MAX_DECIMAL_PLACES = 4; // Define maximum decimal places
   }
 
   static get observedAttributes() {
@@ -44,11 +46,48 @@ class ProgressArc extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue !== newValue) {
-      this[`_${name.replace("-", "")}`] = newValue;
+      if (name === "size") {
+        // Clamp size to minimum value
+        this._size = Math.max(
+          this.MIN_SIZE,
+          parseInt(newValue) || this.MIN_SIZE
+        );
+      } else if (name === "thickness") {
+        // Clamp thickness to maximum of half the diameter
+        const maxThickness = this._size / 2;
+        this._thickness = Math.min(
+          maxThickness,
+          Math.max(1, parseInt(newValue) || 20)
+        );
+      } else if (
+        ["color", "bg-color", "label-color", "value-color"].includes(name)
+      ) {
+        // Validate color inputs
+        this[`_${name.replace("-", "")}`] =
+          this.validateColor(newValue) || this[`_${name.replace("-", "")}`];
+      } else if (name === "decimal-places") {
+        // Clamp decimal places between 0 and MAX_DECIMAL_PLACES
+        this._decimalPlaces = Math.min(
+          this.MAX_DECIMAL_PLACES,
+          Math.max(0, parseInt(newValue) || 0)
+        );
+      } else {
+        this[`_${name.replace("-", "")}`] = newValue;
+      }
       if (this.shadowRoot) {
         this.updateArc(name === "percentage");
       }
     }
+  }
+
+  validateColor(color) {
+    // Simple color validation regex
+    const colorRegex = /^#([0-9A-F]{3}){1,2}$/i;
+    if (colorRegex.test(color)) {
+      return color;
+    }
+    // You could add more complex color validation here (e.g., named colors, rgb(), etc.)
+    return null;
   }
 
   render() {
@@ -57,6 +96,12 @@ class ProgressArc extends HTMLElement {
     const backgroundOpacity = this.getAttribute("background-opacity") || 1;
     this._labelColor = this.getAttribute("label-color") || "#000000";
     this._valueColor = this.getAttribute("value-color") || "#000000";
+
+    // Ensure thickness is not greater than half the diameter
+    const maxThickness = this._size / 2;
+    this._thickness = Math.min(maxThickness, this._thickness);
+
+    const radius = (this._size - this._thickness) / 2;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -111,13 +156,13 @@ class ProgressArc extends HTMLElement {
           <circle class="background"
             cx="${this._size / 2}"
             cy="${this._size / 2}"
-            r="${(this._size - this._thickness) / 2}"
+            r="${radius}"
             stroke-width="${this._thickness}"
           />
           <circle class="progress"
             cx="${this._size / 2}"
             cy="${this._size / 2}"
-            r="${(this._size - this._thickness) / 2}"
+            r="${radius}"
             stroke-width="${this._thickness}"
             stroke-dasharray="0 100"
           />
@@ -146,7 +191,7 @@ class ProgressArc extends HTMLElement {
         `${circumference} ${circumference}`
       );
       progress.setAttribute("stroke-dashoffset", dashOffset);
-      valueDisplay.textContent = `${percentage.toFixed(this._decimalPlaces)}%`;
+      valueDisplay.textContent = this.formatPercentage(percentage);
     } else {
       progress.style.transition = `stroke-dashoffset ${this._duration}ms ease-out`;
       progress.setAttribute(
@@ -174,12 +219,10 @@ class ProgressArc extends HTMLElement {
         const progress = elapsedTime / duration;
         const currentValue =
           start + (end - start) * this.easeOutCubic(progress);
-        valueDisplay.textContent = `${currentValue.toFixed(
-          this._decimalPlaces
-        )}%`;
+        valueDisplay.textContent = this.formatPercentage(currentValue);
         requestAnimationFrame(updateValue);
       } else {
-        valueDisplay.textContent = `${end.toFixed(this._decimalPlaces)}%`;
+        valueDisplay.textContent = this.formatPercentage(end);
       }
     };
 
@@ -188,6 +231,10 @@ class ProgressArc extends HTMLElement {
 
   easeOutCubic(t) {
     return 1 - Math.pow(1 - t, 3);
+  }
+
+  formatPercentage(value) {
+    return `${value.toFixed(this._decimalPlaces)}%`;
   }
 }
 
