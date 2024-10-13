@@ -48,33 +48,71 @@ class ProgressArc extends HTMLElement {
     if (oldValue !== newValue) {
       if (name === "size") {
         // Clamp size to minimum value
-        this._size = Math.max(
-          this.MIN_SIZE,
-          parseInt(newValue) || this.MIN_SIZE
-        );
+        const parsedSize = parseInt(newValue);
+        if (parsedSize < this.MIN_SIZE) {
+          console.warn(
+            `ProgressArc: Size ${parsedSize} is below minimum. Using ${this.MIN_SIZE} instead.`
+          );
+        }
+        this._size = Math.max(this.MIN_SIZE, parsedSize || this.MIN_SIZE);
       } else if (name === "thickness") {
         // Clamp thickness to maximum of half the diameter
         const maxThickness = this._size / 2;
+        const parsedThickness = parseInt(newValue);
+        if (parsedThickness > maxThickness) {
+          console.warn(
+            `ProgressArc: Thickness ${parsedThickness} exceeds maximum. Using ${maxThickness} instead.`
+          );
+        }
         this._thickness = Math.min(
           maxThickness,
-          Math.max(1, parseInt(newValue) || 20)
+          Math.max(1, parsedThickness || 20)
         );
       } else if (
         ["color", "bg-color", "label-color", "value-color"].includes(name)
       ) {
         // Validate color inputs
+        const validatedColor = this.validateColor(newValue);
+        if (!validatedColor) {
+          console.warn(
+            `ProgressArc: Invalid color value for ${name}. Using default color.`
+          );
+        }
         this[`_${name.replace("-", "")}`] =
-          this.validateColor(newValue) || this[`_${name.replace("-", "")}`];
+          validatedColor || this[`_${name.replace("-", "")}`];
       } else if (name === "decimal-places") {
         // Clamp decimal places between 0 and MAX_DECIMAL_PLACES
+        const parsedDecimalPlaces = parseInt(newValue);
+        if (parsedDecimalPlaces > this.MAX_DECIMAL_PLACES) {
+          console.warn(
+            `ProgressArc: Decimal places ${parsedDecimalPlaces} exceeds maximum. Using ${this.MAX_DECIMAL_PLACES} instead.`
+          );
+        }
         this._decimalPlaces = Math.min(
           this.MAX_DECIMAL_PLACES,
-          Math.max(0, parseInt(newValue) || 0)
+          Math.max(0, parsedDecimalPlaces || 0)
         );
+      } else if (name === "percentage") {
+        const parsedPercentage = parseFloat(newValue);
+        if (parsedPercentage < 0 || parsedPercentage > 100) {
+          console.warn(
+            `ProgressArc: Percentage ${parsedPercentage} is out of range. Clamping to 0-100.`
+          );
+        }
+        this._percentage = Math.min(100, Math.max(0, parsedPercentage || 0));
+      } else if (name === "direction") {
+        if (newValue !== "clockwise" && newValue !== "counterclockwise") {
+          console.warn(
+            `ProgressArc: Invalid direction "${newValue}". Defaulting to clockwise.`
+          );
+          this._direction = "clockwise";
+        } else {
+          this._direction = newValue;
+        }
       } else {
         this[`_${name.replace("-", "")}`] = newValue;
       }
-      if (this.shadowRoot) {
+      if (this.isConnected && this.shadowRoot) {
         this.updateArc(name === "percentage");
       }
     }
@@ -174,8 +212,13 @@ class ProgressArc extends HTMLElement {
   }
 
   updateArc(animate = false) {
+    if (!this.shadowRoot) return;
+
     const progress = this.shadowRoot.querySelector(".progress");
     const valueDisplay = this.shadowRoot.querySelector(".value");
+
+    if (!progress || !valueDisplay) return;
+
     const radius = (this._size - this._thickness) / 2;
     const circumference = radius * 2 * Math.PI;
     const percentage = Math.min(
