@@ -1,8 +1,24 @@
 {
+  "name": "mm-ui-progress-arc",
+  "version": "1.0.0",
+  "description": "A customizable, animated circular progress indicator built as a web component.",
+  "main": "progress-arc.js",
   "scripts": {
+<<<<<<< Updated upstream
     "start": "servor --reload",
     "test": "jest"
+=======
+    "test": "echo \"Error: no test specified\" && exit 1"
+>>>>>>> Stashed changes
   },
+  "keywords": [
+    "web-component",
+    "progress",
+    "arc",
+    "circular"
+  ],
+  "author": "musicmanta (Christof Baer)",
+  "license": "MIT",
   "dependencies": {
     "servor": "^4.0.2"
   },
