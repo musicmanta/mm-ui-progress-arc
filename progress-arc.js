@@ -15,6 +15,35 @@ class ProgressArc extends HTMLElement {
     this._currentPercentage = 0;
     this.MIN_SIZE = 100; // Minimum size
     this.MAX_DECIMAL_PLACES = 2; // Changed from 4 to 2
+
+    // Add styles for CLS prevention
+    const style = document.createElement("style");
+    style.textContent = `
+      :host {
+        display: inline-block;
+        position: relative;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      :host(.loaded) {
+        opacity: 1;
+      }
+      .placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: var(--bg-color, #e0e0e0);
+      }
+    `;
+    this.shadowRoot.appendChild(style);
+
+    // Create placeholder
+    const placeholder = document.createElement("div");
+    placeholder.classList.add("placeholder");
+    this.shadowRoot.appendChild(placeholder);
   }
 
   static get observedAttributes() {
@@ -43,6 +72,15 @@ class ProgressArc extends HTMLElement {
   connectedCallback() {
     this.render();
     this.updateArc(true);
+
+    // Remove placeholder and show component when it's ready
+    setTimeout(() => {
+      const placeholder = this.shadowRoot.querySelector(".placeholder");
+      if (placeholder) {
+        placeholder.remove();
+      }
+      this.classList.add("loaded");
+    }, 0);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {

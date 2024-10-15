@@ -27,6 +27,23 @@
   <body>
     <h1>Custom Progress Arc Examples</h1>
     <div class="container">
+      <!-- CLS Prevention Example -->
+      <div class="chart-container">
+        <div class="progress-arc-wrapper">
+          <progress-arc
+            percentage="0"
+            label="CLS Prevention"
+            size="200"
+            thickness="20"
+            color="#7c3aed"
+            bg-color="#e0e0e0"
+            duration="2000"
+          >
+          </progress-arc>
+        </div>
+        <p class="comment">This example demonstrates CLS prevention</p>
+      </div>
+
       <!-- Original example -->
       <div class="chart-container">
         <div class="progress-arc-wrapper">
@@ -505,5 +522,20 @@
         </div>
       </div>
     </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", (event) => {
+        function animateProgressArc(selector, endPercentage, delay = 100) {
+          setTimeout(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+              element.setAttribute("percentage", endPercentage);
+            }
+          }, delay);
+        }
+
+        animateProgressArc("progress-arc", "75");
+      });
+    </script>
   </body>
 </html>
